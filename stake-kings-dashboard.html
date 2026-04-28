@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Stake Kings – Verifikované Výsledky</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#8CFF2E;
+  --bg:#050505;
+  --surface:#0D0D0D;
+  --surface2:#171717;
+  --border:#2F2F2F;
+  --text:#FFFFFF;
+  --text-muted:#888888;
+  --loss:#FF4444;
+  --blue:#60A5FA;
+  --purple:#A78BFA;
+  --orange:#FB923C;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Manrope',sans-serif;
+  font-weight:500;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#444}
+
+.navbar{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:64px;
+  background:rgba(5,5,5,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  font-size:20px;font-weight:800;font-style:italic;
+  letter-spacing:-0.5px;color:var(--text);
+  text-decoration:none;
+}
+.logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:20px}
+
+.hero{
+  padding:72px 32px 56px;
+  max-width:1200px;margin:0 auto;
+}
+.hero-title{
+  font-size:clamp(36px,6vw,72px);
+  font-weight:800;line-height:1;
+  margin-bottom:16px;
+  animation:fadeUp .6s ease both;
+}
+.hero-title span.green{color:var(--accent);font-style:italic}
+.hero-sub{
+  font-size:15px;color:var(--text-muted);
+  margin-bottom:48px;
+  animation:fadeUp .6s .1s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;
+  animation:fadeUp .6s .2s ease both;
+}
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:20px 24px;
+  position:relative;
+  overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+}
+.stat-card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--card-color,var(--accent));
+}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.stat-label{
+  font-size:11px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--text-muted);
+  margin-bottom:12px;
+}
+.stat-value{
+  font-size:clamp(22px,2.5vw,30px);font-weight:800;
+  color:var(--card-color,var(--accent));
+  font-feature-settings:"tnum";
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-0.5px;
+  line-height:1;
+}
+
+.section{
+  max-width:1200px;margin:0 auto;
+  padding:0 32px 80px;
+  animation:fadeUp .6s .3s ease both;
+}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:28px;
+}
+.section-title{font-size:22px;font-weight:800}
+.badge-count{
+  padding:4px 10px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  font-size:11px;font-weight:700;
+  color:var(--text-muted);letter-spacing:.5px;
+}
+
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{
+  padding:14px 18px;
+  background:var(--surface2);
+  color:var(--text-muted);
+  font-size:11px;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;
+  text-align:left;white-space:nowrap;
+  border-bottom:1px solid var(--border);
+}
+tbody tr{
+  border-bottom:1px solid rgba(47,47,47,.5);
+  transition:background .15s;
+  cursor:default;
+}
+tbody tr:nth-child(even){background:rgba(23,23,23,.5)}
+tbody tr:hover{background:rgba(140,255,46,.04)}
+tbody td{padding:14px 18px;vertical-align:middle}
+
+.group-header td{
+  padding:10px 18px;
+  background:var(--surface2);
+  color:var(--text-muted);
+  font-size:10px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;
+  border-top:1px solid var(--border);
+}
+
+.badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:4px 10px;border-radius:4px;
+  font-size:11px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;
+}
+.badge-green{background:rgba(140,255,46,.15);color:var(--accent);border:1px solid rgba(140,255,46,.3)}
+.badge-yellow{background:rgba(251,191,36,.15);color:#FBBF24;border:1px solid rgba(251,191,36,.3)}
+.badge-red{background:rgba(255,68,68,.15);color:var(--loss);border:1px solid rgba(255,68,68,.3)}
+.badge-gray{background:rgba(136,136,136,.15);color:var(--text-muted);border:1px solid rgba(136,136,136,.3)}
+.badge-orange{background:rgba(251,146,60,.15);color:var(--orange);border:1px solid rgba(251,146,60,.3)}
+.badge-win{background:rgba(140,255,46,.12);color:var(--accent);border:1px solid rgba(140,255,46,.25)}
+.badge-loss{background:rgba(255,68,68,.12);color:var(--loss);border:1px solid rgba(255,68,68,.25)}
+.badge-void{background:rgba(136,136,136,.12);color:var(--text-muted);border:1px solid rgba(136,136,136,.25)}
+.badge-closed{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.25)}
+
+.text-green{color:var(--accent);font-weight:700}
+.text-red{color:var(--loss);font-weight:700}
+.text-muted{color:var(--text-muted)}
+
+.btn-detail{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text-muted);
+  font-size:12px;font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+  font-family:'Manrope',sans-serif;
+}
+.btn-detail:hover{
+  border-color:var(--accent);color:var(--accent);
+  box-shadow:0 0 12px rgba(140,255,46,.15);
+}
+
+.overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(6px);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:24px;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+  overflow-y:auto;
+}
+.overlay.active{opacity:1;pointer-events:auto}
+.modal{
+  width:100%;max-width:1100px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  transform:translateY(20px);
+  transition:transform .25s;
+  margin:auto;
+}
+.overlay.active .modal{transform:translateY(0)}
+
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.modal-title{font-size:18px;font-weight:800}
+.modal-close{
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:1px solid var(--border);border-radius:6px;
+  color:var(--text-muted);font-size:18px;cursor:pointer;
+  transition:all .15s;font-family:'Manrope',sans-serif;
+}
+.modal-close:hover{border-color:var(--loss);color:var(--loss)}
+.modal-body{padding:24px}
+
+.mini-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+  margin-bottom:24px;
+}
+.mini-stat{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:14px 16px;
+}
+.mini-stat-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.mini-stat-value{font-size:18px;font-weight:800;line-height:1}
+
+.filters{
+  display:flex;flex-wrap:wrap;gap:12px;
+  margin-bottom:20px;align-items:center;
+}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase}
+select,input[type="date"]{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:8px 12px;
+  color:var(--text);font-family:'Manrope',sans-serif;font-size:13px;
+  cursor:pointer;outline:none;
+  transition:border-color .15s;
+  -webkit-appearance:none;appearance:none;
+}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+select:focus,input[type="date"]:focus{border-color:var(--accent)}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5)}
+.btn-reset{
+  padding:8px 16px;
+  background:transparent;border:1px solid var(--border);
+  border-radius:6px;color:var(--text-muted);
+  font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .15s;
+  align-self:flex-end;
+  letter-spacing:.5px;
+}
+.btn-reset:hover{border-color:var(--accent);color:var(--accent)}
+
+.modal-table-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--border)}
+
+.parlay-link{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--blue);font-size:13px;font-weight:600;
+  position:relative;cursor:default;
+}
+.tooltip{
+  position:absolute;bottom:calc(100% + 8px);left:0;
+  background:#1a1a1a;border:1px solid var(--border);
+  border-radius:6px;padding:10px 12px;
+  font-size:12px;line-height:1.5;
+  color:var(--text);
+  opacity:0;pointer-events:none;
+  transition:opacity .15s;z-index:50;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+  max-width:360px;white-space:normal;
+}
+.parlay-link:hover .tooltip{opacity:1}
+
+.kurz-original{text-decoration:line-through;color:var(--text-muted);font-size:12px}
+.kurz-arrow{color:var(--orange);font-size:11px;margin:0 4px}
+.kurz-new{color:var(--orange);font-weight:700;font-size:13px}
+.kurz-normal{font-feature-settings:"tnum";font-variant-numeric:tabular-nums}
+
+.no-results{
+  text-align:center;padding:40px;
+  color:var(--text-muted);font-size:14px;
+}
+
+footer{
+  border-top:1px solid var(--border);
+  padding:24px 32px;
+  text-align:center;
+  font-size:12px;color:var(--text-muted);
+  letter-spacing:.5px;
+}
+footer span{color:var(--accent)}
+
+.loading{
+  display:none;text-align:center;padding:60px;
+  color:var(--text-muted);font-size:14px;
+}
+.loading.active{display:block}
+.spinner{
+  display:inline-block;width:32px;height:32px;
+  border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:14px 20px;
+  font-size:13px;font-weight:600;
+  transform:translateX(120%);transition:transform .3s ease;
+  max-width:320px;
+}
+.toast.show{transform:translateX(0)}
+.toast.success{border-color:rgba(140,255,46,.4);color:var(--accent)}
+.toast.error{border-color:rgba(255,68,68,.4);color:var(--loss)}
+
+@media(max-width:900px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .mini-stats{grid-template-columns:repeat(2,1fr)}
+  .navbar{padding:0 16px}
+  .hero{padding:48px 16px 40px}
+  .section{padding:0 16px 60px}
+}
+@media(max-width:600px){
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .stat-value{font-size:20px}
+  .hero-title{font-size:40px}
+  .filters{gap:8px}
+  .mini-stats{grid-template-columns:1fr 1fr}
+  .overlay{padding:0}
+  .modal{border-radius:0;min-height:100dvh}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="logo" href="#">STAKE <span>KINGS</span></a>
+  <div class="nav-right"></div>
+</nav>
+
+<section class="hero">
+  <h1 class="hero-title">Verifikované <span class="green">Výsledky</span></h1>
+  <p class="hero-sub">Všechny výsledky jsou verifikované</p>
+  <div class="stat-grid" id="globalStats">
+    <div class="stat-card" style="--card-color:var(--blue)">
+      <div class="stat-label">Počet tipů</div>
+      <div class="stat-value" id="gs-count">—</div>
+    </div>
+    <div class="stat-card" style="--card-color:var(--accent)">
+      <div class="stat-label">Celkový zisk</div>
+      <div class="stat-value" id="gs-profit">—</div>
+    </div>
+    <div class="stat-card" style="--card-color:var(--accent)">
+      <div class="stat-label">Celkové ROI</div>
+      <div class="stat-value" id="gs-roi">—</div>
+    </div>
+    <div class="stat-card" style="--card-color:var(--purple)">
+      <div class="stat-label">Úspěšnost</div>
+      <div class="stat-value" id="gs-winrate">—</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <h2 class="section-title">🏆 Přehled</h2>
+    <span class="badge-count">4 dostupných</span>
+  </div>
+  <div class="loading" id="overviewLoading">
+    <div class="spinner"></div><br>Načítám živá data…
+  </div>
+  <div class="table-wrap" id="overviewTableWrap">
+    <table id="overviewTable">
+      <thead>
+        <tr>
+          <th>Název</th>
+          <th>Počet tiketů</th>
+          <th>Úspěšnost</th>
+          <th>Výhra celkem</th>
+          <th>ROI</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="overviewBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<div class="overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Detail</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mini-stats" id="modalMiniStats"></div>
+      <div class="filters">
+        <div class="filter-group">
+          <span class="filter-label">Výsledek</span>
+          <select id="filterResult" onchange="applyFilters()">
+            <option value="all">Vše</option>
+            <option value="win">WIN</option>
+            <option value="loss">LOSS</option>
+            <option value="void">VOID</option>
+            <option value="closed">CLOSED</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Měsíc</span>
+          <select id="filterMonth" onchange="applyFilters()">
+            <option value="all">Všechny měsíce</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Řazení</span>
+          <select id="filterSort" onchange="applyFilters()">
+            <option value="date-desc">Datum ↓ (nejnovější)</option>
+            <option value="date-asc">Datum ↑ (nejstarší)</option>
+            <option value="result-desc">Výsledek ↓</option>
+            <option value="result-asc">Výsledek ↑</option>
+            <option value="kurz-desc">Kurz ↓</option>
+          </select>
+        </div>
+        <button class="btn-reset" onclick="resetFilters()">↺ Reset</button>
+      </div>
+      <div class="modal-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Utkání</th>
+              <th>Tip</th>
+              <th>Kurz</th>
+              <th>Vklad</th>
+              <th>Uzavřeno</th>
+              <th>Výsledek</th>
+              <th>Badge</th>
+            </tr>
+          </thead>
+          <tbody id="modalBody"></tbody>
+        </table>
+        <div class="no-results" id="noResults" style="display:none">Žádné výsledky pro zvolené filtry.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>© 2026 <span>Stake Kings</span></footer>
+
+<script>
+const mockData = {
+  "Start členství": [
+    {id:"s01",Datum:"03.01.2025",Utkání:"Sparta Praha – HC Třinec / HC Liberec – HC Vítkovice",Tip:"Výsledek: Sparta Praha / Výsledek: HC Liberec",Kurz:4.20,Vklad:5000,Uzavřeno:4.20,Výsledek:16000},
+    {id:"s02",Datum:"07.01.2025",Utkání:"Slavia Praha – Baník Ostrava",Tip:"Výsledek zápasu: Slavia Praha",Kurz:2.10,Vklad:8000,Uzavřeno:2.10,Výsledek:8800},
+    {id:"s03",Datum:"11.01.2025",Utkání:"Kometa Brno – Motor České Budějovice",Tip:"Výsledek zápasu: Kometa Brno",Kurz:1.70,Vklad:5000,Uzavřeno:1.70,Výsledek:0},
+    {id:"s04",Datum:"15.01.2025",Utkání:"Manchester City – Arsenal",Tip:"Výsledek zápasu: Manchester City",Kurz:1.95,Vklad:10000,Uzavřeno:1.95,Výsledek:-10000},
+    {id:"s05",Datum:"19.01.2025",Utkání:"Sigma Olomouc – Bohemians Praha",Tip:"Výsledek zápasu: Sigma Olomouc",Kurz:2.40,Vklad:6000,Uzavřeno:1.65,Výsledek:3900},
+    {id:"s06",Datum:"23.01.2025",Utkání:"Pittsburgh Penguins – Philadelphia Flyers",Tip:"Výsledek zápasu: Pittsburgh Penguins",Kurz:1.85,Vklad:7000,Uzavřeno:1.85,Výsledek:5950},
+    {id:"s07",Datum:"27.01.2025",Utkání:"Viktoria Plzeň – Slovácko",Tip:"Výsledek zápasu: Viktoria Plzeň",Kurz:1.60,Vklad:9000,Uzavřeno:1.60,Výsledek:-9000},
+  ],
+  "VIP členství": [
+    {id:"v01",Datum:"05.01.2025",Utkání:"Real Madrid – FC Barcelona",Tip:"Výsledek zápasu: Real Madrid",Kurz:2.80,Vklad:15000,Uzavřeno:2.80,Výsledek:27000},
+    {id:"v02",Datum:"10.01.2025",Utkání:"HC Mountfield HK – HC Kometa Brno / Bílí Tygři Liberec – HC Olomouc",Tip:"Výsledek: Mountfield HK / Výsledek: Bílí Tygři",Kurz:5.10,Vklad:8000,Uzavřeno:5.10,Výsledek:32800},
+    {id:"v03",Datum:"14.01.2025",Utkání:"Juventus – Inter Milán",Tip:"Výsledek zápasu: Juventus",Kurz:2.60,Vklad:12000,Uzavřeno:1.80,Výsledek:9600},
+    {id:"v04",Datum:"18.01.2025",Utkání:"Tampa Bay Lightning – Florida Panthers",Tip:"Výsledek zápasu: Florida Panthers",Kurz:2.10,Vklad:10000,Uzavřeno:2.10,Výsledek:-10000},
+    {id:"v05",Datum:"22.01.2025",Utkání:"PSG – Olympique Lyon",Tip:"Výsledek zápasu: PSG",Kurz:1.55,Vklad:15000,Uzavřeno:1.55,Výsledek:8250},
+  ],
+  "Prémium": [
+    {id:"p01",Datum:"06.01.2025",Utkání:"Borussia Dortmund – RB Leipzig",Tip:"Výsledek zápasu: Borussia Dortmund",Kurz:2.00,Vklad:10000,Uzavřeno:2.00,Výsledek:10000},
+    {id:"p02",Datum:"13.01.2025",Utkání:"Slavia Praha – Plzeň / Sparta Praha – Baník Ostrava",Tip:"Výsledek: Slavia Praha / Výsledek: Sparta Praha",Kurz:4.50,Vklad:5000,Uzavřeno:4.50,Výsledek:17500},
+    {id:"p03",Datum:"20.01.2025",Utkání:"HC Třinec – HC Sparta Praha",Tip:"Výsledek zápasu: HC Třinec",Kurz:2.30,Vklad:8000,Uzavřeno:2.30,Výsledek:-8000},
+    {id:"p04",Datum:"25.01.2025",Utkání:"Inter Milán – AC Milán",Tip:"Výsledek zápasu: Inter Milán",Kurz:2.15,Vklad:9000,Uzavřeno:1.55,Výsledek:4950},
+  ],
+  "Speciál": [
+    {id:"sp01",Datum:"08.01.2025",Utkání:"HC Oceláři Třinec – Škoda Plzeň / HC Dynamo Pardubice – Bílí Tygři Liberec",Tip:"Výsledek: HC Třinec / Výsledek: HC Dynamo Pardubice",Kurz:5.60,Vklad:4000,Uzavřeno:5.60,Výsledek:18400},
+    {id:"sp02",Datum:"15.01.2025",Utkání:"AC Milán – Napoli",Tip:"Výsledek zápasu: AC Milán",Kurz:2.70,Vklad:7000,Uzavřeno:2.70,Výsledek:-7000},
+    {id:"sp03",Datum:"21.01.2025",Utkání:"Andrey Rublev – Daniil Medvedev",Tip:"Výsledek zápasu: Daniil Medvedev",Kurz:1.80,Vklad:9000,Uzavřeno:1.35,Výsledek:3150},
+    {id:"sp04",Datum:"28.01.2025",Utkání:"Edmonton Oilers – Calgary Flames",Tip:"Výsledek zápasu: Edmonton Oilers",Kurz:1.65,Vklad:11000,Uzavřeno:1.65,Výsledek:7150},
+  ]
+};
+
+const SUPABASE_URL = 'https://txxrvzwbpiynvpjvjzcw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4eHJ2endicGl5bnZwanZqemN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2Mzg5ODUsImV4cCI6MjA4MTIxNDk4NX0.MVx5X1GYckYpkPH2APBuVM_DKHImjAqNZZeZ3L331p8';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const TABLE_NAMES = ["Start členství","VIP členství","Prémium","Speciál"];
+const GROUP_LABELS = {
+  "Start členství":"ČLENSTVÍ",
+  "VIP členství":"ČLENSTVÍ",
+  "Prémium":"JEDNORÁZOVÉ TIKETY",
+  "Speciál":"JEDNORÁZOVÉ TIKETY"
+};
+
+let currentData = JSON.parse(JSON.stringify(mockData));
+let currentTable = null;
+
+const fmt = (n) => new Intl.NumberFormat('cs-CZ').format(n) + ' Kč';
+const fmtNum = (n) => new Intl.NumberFormat('cs-CZ').format(n);
+const fmtKurz = (k) => parseFloat(k).toFixed(2);
+
+function fmtResult(val) {
+  if (val > 0) return `<span class="text-green">+${fmt(val)}</span>`;
+  if (val < 0) return `<span class="text-red">${fmt(val)}</span>`;
+  return `<span class="text-muted">0 Kč</span>`;
+}
+function fmtProfit(val) {
+  if (val > 0) return `<span class="text-green">+${fmt(val)}</span>`;
+  if (val < 0) return `<span class="text-red">${fmt(val)}</span>`;
+  return `<span class="text-muted">0 Kč</span>`;
+}
+
+// Čistý zisk = u výhry odečteme vklad (DB vrací hrubý výnos), u prohry/void zůstává
+function getNetProfit(row) {
+  if (row.Výsledek > 0) return row.Výsledek - row.Vklad;
+  return row.Výsledek;
+}
+
+function computeStats(rows) {
+  const closed = rows.filter(r => parseFloat(r.Uzavřeno) !== parseFloat(r.Kurz));
+  const active = rows.filter(r => parseFloat(r.Uzavřeno) === parseFloat(r.Kurz));
+  const wins = active.filter(r => r.Výsledek > 0);
+  const losses = active.filter(r => r.Výsledek < 0);
+  const totalStake = rows.reduce((s,r) => s + r.Vklad, 0);
+  const totalProfit = rows.reduce((s,r) => s + getNetProfit(r), 0);
+  const roi = totalStake > 0 ? (totalProfit / totalStake * 100) : 0;
+  const winrate = (wins.length + losses.length) > 0
+    ? (wins.length / (wins.length + losses.length) * 100) : 0;
+  return { count: rows.length, totalProfit, totalStake, roi, winrate };
+}
+
+function getStatus(row) {
+  if (parseFloat(row.Uzavřeno) !== parseFloat(row.Kurz)) return 'CLOSED';
+  if (row.Výsledek > 0) return 'WIN';
+  if (row.Výsledek < 0) return 'LOSS';
+  return 'VOID';
+}
+function statusBadge(status) {
+  const map = {WIN:'badge-win',LOSS:'badge-loss',VOID:'badge-void',CLOSED:'badge-closed'};
+  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+}
+
+function renderUtkání(u) {
+  if (!u || !u.includes(' / ')) return `<span>${u||''}</span>`;
+  const parts = u.split(' / ');
+  const tooltip = parts.join('<br>');
+  return `<span class="parlay-link">🔗 ${parts.length} zápasů<span class="tooltip">${tooltip}</span></span>`;
+}
+
+function winrateBadge(pct) {
+  if (pct >= 60) return `<span class="badge badge-green">${pct.toFixed(1)}%</span>`;
+  if (pct >= 40) return `<span class="badge badge-yellow">${pct.toFixed(1)}%</span>`;
+  return `<span class="badge badge-red">${pct.toFixed(1)}%</span>`;
+}
+
+function renderGlobalStats() {
+  const all = Object.values(currentData).flat();
+  const s = computeStats(all);
+  document.getElementById('gs-count').textContent = fmtNum(s.count);
+  document.getElementById('gs-profit').innerHTML = (s.totalProfit >= 0 ? '+' : '') + fmt(s.totalProfit);
+  document.getElementById('gs-roi').textContent = (s.roi >= 0 ? '+' : '') + s.roi.toFixed(2) + '%';
+  document.getElementById('gs-winrate').textContent = s.winrate.toFixed(1) + '%';
+  document.getElementById('gs-profit').style.color = s.totalProfit >= 0 ? 'var(--accent)' : 'var(--loss)';
+  document.getElementById('gs-roi').style.color = s.roi >= 0 ? 'var(--accent)' : 'var(--loss)';
+}
+
+function renderOverview() {
+  const tbody = document.getElementById('overviewBody');
+  tbody.innerHTML = '';
+  let lastGroup = null;
+  TABLE_NAMES.forEach(name => {
+    const group = GROUP_LABELS[name];
+    if (group !== lastGroup) {
+      lastGroup = group;
+      const tr = document.createElement('tr');
+      tr.className = 'group-header';
+      tr.innerHTML = `<td colspan="6">${group}</td>`;
+      tbody.appendChild(tr);
+    }
+    const rows = currentData[name] || [];
+    const s = computeStats(rows);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:700">${name}</td>
+      <td style="font-feature-settings:'tnum'">${fmtNum(s.count)}</td>
+      <td>${winrateBadge(s.winrate)}</td>
+      <td>${fmtProfit(s.totalProfit)}</td>
+      <td style="font-weight:700;color:${s.roi>=0?'var(--accent)':'var(--loss)'}">${(s.roi>=0?'+':'')+s.roi.toFixed(2)}%</td>
+      <td><button class="btn-detail" onclick="openModal('${name}')">Detail →</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openModal(tableName) {
+  currentTable = tableName;
+  document.getElementById('modalTitle').textContent = tableName;
+  resetFilters();
+  renderModal();
+  document.getElementById('modalOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function renderModal() {
+  const rows = currentData[currentTable] || [];
+  const s = computeStats(rows);
+  const ms = document.getElementById('modalMiniStats');
+  ms.innerHTML = `
+    <div class="mini-stat">
+      <div class="mini-stat-label">Tiketů</div>
+      <div class="mini-stat-value" style="color:var(--blue)">${fmtNum(s.count)}</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-label">Celkový zisk</div>
+      <div class="mini-stat-value" style="color:${s.totalProfit>=0?'var(--accent)':'var(--loss)'}">${(s.totalProfit>=0?'+':'')+fmt(s.totalProfit)}</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-label">ROI</div>
+      <div class="mini-stat-value" style="color:${s.roi>=0?'var(--accent)':'var(--loss)'}">${(s.roi>=0?'+':'')+s.roi.toFixed(2)}%</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-label">Úspěšnost</div>
+      <div class="mini-stat-value" style="color:var(--purple)">${s.winrate.toFixed(1)}%</div>
+    </div>
+  `;
+
+  // Naplň měsíční dropdown z dat
+  const monthSel = document.getElementById('filterMonth');
+  const currentMonth = monthSel.value;
+  const months = new Set();
+  rows.forEach(r => {
+    if (!r.Datum) return;
+    const parts = r.Datum.split('.');
+    if (parts.length >= 3) {
+      months.add(`${parseInt(parts[1])}.${parts[2]}`); // M.YYYY
+    }
+  });
+  const sorted = Array.from(months).sort((a,b) => {
+    const [ma,ya] = a.split('.').map(Number);
+    const [mb,yb] = b.split('.').map(Number);
+    return (ya*12+ma) - (yb*12+mb);
+  }).reverse(); // nejnovější první
+
+  monthSel.innerHTML = '<option value="all">Všechny měsíce</option>';
+  sorted.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    monthSel.appendChild(opt);
+  });
+  if (sorted.includes(currentMonth)) monthSel.value = currentMonth;
+
+  applyFilters();
+}
+
+function applyFilters() {
+  const rows = currentData[currentTable] || [];
+  const fResult = document.getElementById('filterResult').value;
+  const fMonth = document.getElementById('filterMonth').value;
+  const fSort = document.getElementById('filterSort').value;
+
+  let filtered = rows.filter(r => {
+    const status = getStatus(r).toLowerCase();
+    if (fResult !== 'all' && status !== fResult) return false;
+    if (fMonth !== 'all' && r.Datum) {
+      const parts = r.Datum.split('.');
+      if (parts.length >= 3) {
+        const rowMonth = `${parseInt(parts[1])}.${parts[2]}`;
+        if (rowMonth !== fMonth) return false;
+      }
+    }
+    return true;
+  });
+
+  filtered.sort((a,b) => {
+    if (fSort === 'date-desc') return dateCmp(b.Datum, a.Datum);
+    if (fSort === 'date-asc') return dateCmp(a.Datum, b.Datum);
+    if (fSort === 'result-desc') return b.Výsledek - a.Výsledek;
+    if (fSort === 'result-asc') return a.Výsledek - b.Výsledek;
+    if (fSort === 'kurz-desc') return b.Kurz - a.Kurz;
+    return 0;
+  });
+
+  const tbody = document.getElementById('modalBody');
+  const noRes = document.getElementById('noResults');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) { noRes.style.display = 'block'; return; }
+  noRes.style.display = 'none';
+
+  filtered.forEach(row => {
+    const status = getStatus(row);
+    const isClosed = status === 'CLOSED';
+    const kurzHtml = isClosed
+      ? `<span class="kurz-original">${fmtKurz(row.Kurz)}</span><span class="kurz-arrow">→</span><span class="kurz-new">${fmtKurz(row.Uzavřeno)}</span>`
+      : `<span class="kurz-normal">${fmtKurz(row.Kurz)}</span>`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="white-space:nowrap;color:var(--text-muted);font-size:13px">${row.Datum}</td>
+      <td>${renderUtkání(row.Utkání)}</td>
+      <td style="font-size:12px;color:var(--text-muted);max-width:200px">${row.Tip||''}</td>
+      <td style="white-space:nowrap">${kurzHtml}</td>
+      <td style="font-feature-settings:'tnum';white-space:nowrap">${fmt(row.Vklad)}</td>
+      <td style="white-space:nowrap;color:${isClosed?'var(--orange)':'var(--text-muted)'}">${isClosed ? fmtKurz(row.Uzavřeno) : '—'}</td>
+      <td style="white-space:nowrap">${fmtResult(getNetProfit(row))}</td>
+      <td>${statusBadge(status)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function resetFilters() {
+  document.getElementById('filterResult').value = 'all';
+  document.getElementById('filterMonth').value = 'all';
+  document.getElementById('filterSort').value = 'date-desc';
+  applyFilters();
+}
+
+function dateCmp(a,b) {
+  const parse = s => { const [d,m,y] = s.split('.'); return new Date(`${y}-${m}-${d}`); };
+  return parse(a) - parse(b);
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ══════════════════════════════════════════════════════
+//  LIVE FETCH Z SUPABASE
+// ══════════════════════════════════════════════════════
+async function fetchLiveData() {
+  document.getElementById('overviewLoading').classList.add('active');
+  document.getElementById('overviewTableWrap').style.display = 'none';
+
+  try {
+    const results = await Promise.all(
+      TABLE_NAMES.map(name =>
+        supabaseClient.from(name).select('*').order('Datum', { ascending: false })
+      )
+    );
+
+    const liveData = {};
+    results.forEach((res, i) => {
+      if (res.error) throw new Error(`${TABLE_NAMES[i]}: ${res.error.message}`);
+      liveData[TABLE_NAMES[i]] = res.data || [];
+    });
+
+    currentData = liveData;
+    showToast('✅ Živá data načtena');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ Chyba načítání, používám mock data', 'error');
+    currentData = JSON.parse(JSON.stringify(mockData));
+  } finally {
+    document.getElementById('overviewLoading').classList.remove('active');
+    document.getElementById('overviewTableWrap').style.display = '';
+    renderGlobalStats();
+    renderOverview();
+  }
+}
+
+// INIT
+fetchLiveData();
+</script>
+</body>
+</html>
