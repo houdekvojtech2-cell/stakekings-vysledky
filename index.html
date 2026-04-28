@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Stake Kings – Verifikované Výsledky</title>
+<title>Stake Kings – Statistiky</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -24,343 +25,201 @@
   --orange:#FB923C;
 }
 html{scroll-behavior:smooth}
-body{
-  font-family:'Manrope',sans-serif;
-  font-weight:500;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  overflow-x:hidden;
-}
+body{font-family:'Manrope',sans-serif;font-weight:500;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:#444}
 
-.navbar{
-  position:sticky;top:0;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 32px;height:64px;
-  background:rgba(5,5,5,0.92);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);
-}
-.logo{
-  font-size:20px;font-weight:800;font-style:italic;
-  letter-spacing:-0.5px;color:var(--text);
-  text-decoration:none;
-}
+/* NAVBAR */
+.navbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:rgba(5,5,5,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.logo{font-size:20px;font-weight:800;font-style:italic;letter-spacing:-0.5px;color:var(--text);text-decoration:none;}
 .logo span{color:var(--accent)}
-.nav-right{display:flex;align-items:center;gap:20px}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.nav-cta{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;background:var(--accent);color:#000;font-weight:800;font-size:13px;border-radius:6px;text-decoration:none;border:none;transition:opacity .15s;letter-spacing:.3px;}
+.nav-cta:hover{opacity:.85;color:#000;}
 
-.hero{
-  padding:72px 32px 56px;
-  max-width:1200px;margin:0 auto;
-}
-.hero-title{
-  font-size:clamp(36px,6vw,72px);
-  font-weight:800;line-height:1;
-  margin-bottom:16px;
-  animation:fadeUp .6s ease both;
-}
-.hero-title span.green{color:var(--accent);font-style:italic}
-.hero-sub{
-  font-size:15px;color:var(--text-muted);
-  margin-bottom:48px;
-  animation:fadeUp .6s .1s ease both;
-}
+/* HERO */
+.hero{padding:64px 32px 48px;max-width:1200px;margin:0 auto;}
+.hero-label{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(140,255,46,.08);border:1px solid rgba(140,255,46,.2);border-radius:20px;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.5px;text-transform:uppercase;margin-bottom:20px;}
+.hero-title{font-size:clamp(32px,5vw,64px);font-weight:800;line-height:1.05;margin-bottom:12px;animation:fadeUp .6s ease both;}
+.hero-title span{color:var(--accent);font-style:italic;}
+.hero-sub{font-size:15px;color:var(--text-muted);margin-bottom:48px;animation:fadeUp .6s .1s ease both;max-width:600px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-.stat-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:16px;
-  animation:fadeUp .6s .2s ease both;
-}
-.stat-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:20px 24px;
-  position:relative;
-  overflow:hidden;
-  transition:transform .2s,box-shadow .2s;
-}
-.stat-card::before{
-  content:'';
-  position:absolute;top:0;left:0;right:0;height:3px;
-  background:var(--card-color,var(--accent));
-}
+/* STAT CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;animation:fadeUp .6s .2s ease both;margin-bottom:48px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-color,var(--accent));}
 .stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
-.stat-label{
-  font-size:11px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;color:var(--text-muted);
-  margin-bottom:12px;
-}
-.stat-value{
-  font-size:clamp(22px,2.5vw,30px);font-weight:800;
-  color:var(--card-color,var(--accent));
-  font-feature-settings:"tnum";
-  font-variant-numeric:tabular-nums;
-  letter-spacing:-0.5px;
-  line-height:1;
-}
+.stat-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;}
+.stat-value{font-size:clamp(20px,2.2vw,28px);font-weight:800;color:var(--card-color,var(--accent));font-variant-numeric:tabular-nums;letter-spacing:-0.5px;line-height:1;}
 
-.section{
-  max-width:1200px;margin:0 auto;
-  padding:0 32px 80px;
-  animation:fadeUp .6s .3s ease both;
-}
-.section-header{
-  display:flex;align-items:center;gap:12px;
-  margin-bottom:28px;
-}
-.section-title{font-size:22px;font-weight:800}
-.badge-count{
-  padding:4px 10px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:4px;
-  font-size:11px;font-weight:700;
-  color:var(--text-muted);letter-spacing:.5px;
-}
+/* CHART SECTION */
+.chart-section{max-width:1200px;margin:0 auto;padding:0 32px 48px;animation:fadeUp .6s .25s ease both;}
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;position:relative;overflow:hidden;}
+.chart-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+.chart-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;}
+.chart-left{}
+.chart-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+.chart-profit{font-size:clamp(24px,3vw,40px);font-weight:800;color:var(--accent);letter-spacing:-1px;line-height:1;}
+.chart-profit-sub{font-size:13px;color:var(--text-muted);margin-top:6px;}
+.chart-profit-sub span{color:var(--accent);font-weight:700;}
+.period-btns{display:flex;gap:6px;align-items:center;}
+.period-btn{padding:7px 16px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;}
+.period-btn.active,.period-btn:hover{background:var(--accent);color:#000;border-color:var(--accent);}
+.chart-container{position:relative;height:260px;}
 
+/* SIDE STATS */
+.chart-layout{display:grid;grid-template-columns:1fr 280px;gap:20px;}
+.side-stats{display:flex;flex-direction:column;gap:12px;}
+.side-stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.side-stat-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+.side-stat-value{font-size:22px;font-weight:800;}
+.side-stat-sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.recent-tickets{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;flex:1;}
+.recent-title{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;}
+.recent-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(47,47,47,.5);font-size:12px;}
+.recent-item:last-child{border-bottom:none;}
+.recent-date{color:var(--text-muted);}
+.recent-kurz{color:var(--text);}
+.recent-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;}
+.rb-win{background:rgba(140,255,46,.15);color:var(--accent);}
+.rb-loss{background:rgba(255,68,68,.15);color:var(--loss);}
+
+/* SECTION */
+.section{max-width:1200px;margin:0 auto;padding:0 32px 80px;animation:fadeUp .6s .3s ease both;}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.section-title{font-size:22px;font-weight:800;}
+.badge-count{padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;}
+
+/* TABLE */
 .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:14px}
-thead th{
-  padding:14px 18px;
-  background:var(--surface2);
-  color:var(--text-muted);
-  font-size:11px;font-weight:700;letter-spacing:.8px;
-  text-transform:uppercase;
-  text-align:left;white-space:nowrap;
-  border-bottom:1px solid var(--border);
-}
-tbody tr{
-  border-bottom:1px solid rgba(47,47,47,.5);
-  transition:background .15s;
-  cursor:default;
-}
+thead th{padding:14px 18px;background:var(--surface2);color:var(--text-muted);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid rgba(47,47,47,.5);transition:background .15s;}
 tbody tr:nth-child(even){background:rgba(23,23,23,.5)}
 tbody tr:hover{background:rgba(140,255,46,.04)}
 tbody td{padding:14px 18px;vertical-align:middle}
+.group-header td{padding:10px 18px;background:var(--surface2);color:var(--text-muted);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-top:1px solid var(--border);}
 
-.group-header td{
-  padding:10px 18px;
-  background:var(--surface2);
-  color:var(--text-muted);
-  font-size:10px;font-weight:700;letter-spacing:1.5px;
-  text-transform:uppercase;
-  border-top:1px solid var(--border);
-}
-
-.badge{
-  display:inline-flex;align-items:center;justify-content:center;
-  padding:4px 10px;border-radius:4px;
-  font-size:11px;font-weight:700;letter-spacing:.5px;
-  text-transform:uppercase;
-}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
 .badge-green{background:rgba(140,255,46,.15);color:var(--accent);border:1px solid rgba(140,255,46,.3)}
 .badge-yellow{background:rgba(251,191,36,.15);color:#FBBF24;border:1px solid rgba(251,191,36,.3)}
 .badge-red{background:rgba(255,68,68,.15);color:var(--loss);border:1px solid rgba(255,68,68,.3)}
-.badge-gray{background:rgba(136,136,136,.15);color:var(--text-muted);border:1px solid rgba(136,136,136,.3)}
-.badge-orange{background:rgba(251,146,60,.15);color:var(--orange);border:1px solid rgba(251,146,60,.3)}
 .badge-win{background:rgba(140,255,46,.12);color:var(--accent);border:1px solid rgba(140,255,46,.25)}
 .badge-loss{background:rgba(255,68,68,.12);color:var(--loss);border:1px solid rgba(255,68,68,.25)}
 .badge-void{background:rgba(136,136,136,.12);color:var(--text-muted);border:1px solid rgba(136,136,136,.25)}
 .badge-closed{background:rgba(251,146,60,.12);color:var(--orange);border:1px solid rgba(251,146,60,.25)}
-
 .text-green{color:var(--accent);font-weight:700}
 .text-red{color:var(--loss);font-weight:700}
 .text-muted{color:var(--text-muted)}
 
-.btn-detail{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:7px 14px;
-  background:transparent;
-  border:1px solid var(--border);
-  border-radius:6px;
-  color:var(--text-muted);
-  font-size:12px;font-weight:700;
-  cursor:pointer;
-  transition:all .15s;
-  white-space:nowrap;
-  font-family:'Manrope',sans-serif;
-}
-.btn-detail:hover{
-  border-color:var(--accent);color:var(--accent);
-  box-shadow:0 0 12px rgba(140,255,46,.15);
-}
+.btn-detail{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'Manrope',sans-serif;}
+.btn-detail:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 0 12px rgba(140,255,46,.15);}
 
-.overlay{
-  position:fixed;inset:0;z-index:200;
-  background:rgba(0,0,0,.75);
-  backdrop-filter:blur(6px);
-  display:flex;align-items:flex-start;justify-content:center;
-  padding:24px;
-  opacity:0;pointer-events:none;
-  transition:opacity .25s;
-  overflow-y:auto;
-}
+/* MODAL */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .25s;overflow-y:auto;}
 .overlay.active{opacity:1;pointer-events:auto}
-.modal{
-  width:100%;max-width:1100px;
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:8px;
-  overflow:hidden;
-  transform:translateY(20px);
-  transition:transform .25s;
-  margin:auto;
-}
+.modal{width:100%;max-width:1100px;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transform:translateY(20px);transition:transform .25s;margin:auto;}
 .overlay.active .modal{transform:translateY(0)}
-
-.modal-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:20px 24px;
-  border-bottom:1px solid var(--border);
-  background:var(--surface2);
-}
-.modal-title{font-size:18px;font-weight:800}
-.modal-close{
-  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-  background:transparent;border:1px solid var(--border);border-radius:6px;
-  color:var(--text-muted);font-size:18px;cursor:pointer;
-  transition:all .15s;font-family:'Manrope',sans-serif;
-}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.modal-title{font-size:18px;font-weight:800;}
+.modal-close{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:18px;cursor:pointer;transition:all .15s;font-family:'Manrope',sans-serif;}
 .modal-close:hover{border-color:var(--loss);color:var(--loss)}
 .modal-body{padding:24px}
+.mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.mini-stat{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+.mini-stat-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;}
+.mini-stat-value{font-size:18px;font-weight:800;line-height:1;}
 
-.mini-stats{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
-  margin-bottom:24px;
-}
-.mini-stat{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:6px;padding:14px 16px;
-}
-.mini-stat-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
-.mini-stat-value{font-size:18px;font-weight:800;line-height:1}
-
-.filters{
-  display:flex;flex-wrap:wrap;gap:12px;
-  margin-bottom:20px;align-items:center;
-}
-.filter-group{display:flex;flex-direction:column;gap:4px}
-.filter-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase}
-select,input[type="date"]{
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:6px;padding:8px 12px;
-  color:var(--text);font-family:'Manrope',sans-serif;font-size:13px;
-  cursor:pointer;outline:none;
-  transition:border-color .15s;
-  -webkit-appearance:none;appearance:none;
-}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
-select:focus,input[type="date"]:focus{border-color:var(--accent)}
-input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.5)}
-.btn-reset{
-  padding:8px 16px;
-  background:transparent;border:1px solid var(--border);
-  border-radius:6px;color:var(--text-muted);
-  font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;
-  cursor:pointer;transition:all .15s;
-  align-self:flex-end;
-  letter-spacing:.5px;
-}
+/* FILTERS */
+.filters{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;align-items:center;}
+.filter-group{display:flex;flex-direction:column;gap:4px;}
+.filter-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;}
+select{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:'Manrope',sans-serif;font-size:13px;cursor:pointer;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;}
+select:focus{border-color:var(--accent)}
+.btn-reset{padding:8px 16px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;align-self:flex-end;letter-spacing:.5px;}
 .btn-reset:hover{border-color:var(--accent);color:var(--accent)}
-
 .modal-table-wrap{overflow-x:auto;border-radius:6px;border:1px solid var(--border)}
-
-.parlay-link{
-  display:inline-flex;align-items:center;gap:6px;
-  color:var(--blue);font-size:13px;font-weight:600;
-  position:relative;cursor:default;
-}
-.tooltip{
-  position:absolute;bottom:calc(100% + 8px);left:0;
-  background:#1a1a1a;border:1px solid var(--border);
-  border-radius:6px;padding:10px 12px;
-  font-size:12px;line-height:1.5;
-  color:var(--text);
-  opacity:0;pointer-events:none;
-  transition:opacity .15s;z-index:50;
-  box-shadow:0 8px 24px rgba(0,0,0,.5);
-  max-width:360px;white-space:normal;
-}
+.parlay-link{display:inline-flex;align-items:center;gap:6px;color:var(--blue);font-size:13px;font-weight:600;position:relative;cursor:default;}
+.tooltip{position:absolute;bottom:calc(100% + 8px);left:0;background:#1a1a1a;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.5;color:var(--text);opacity:0;pointer-events:none;transition:opacity .15s;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:360px;white-space:normal;}
 .parlay-link:hover .tooltip{opacity:1}
-
 .kurz-original{text-decoration:line-through;color:var(--text-muted);font-size:12px}
 .kurz-arrow{color:var(--orange);font-size:11px;margin:0 4px}
 .kurz-new{color:var(--orange);font-weight:700;font-size:13px}
-.kurz-normal{font-feature-settings:"tnum";font-variant-numeric:tabular-nums}
+.no-results{text-align:center;padding:40px;color:var(--text-muted);font-size:14px;}
 
-.no-results{
-  text-align:center;padding:40px;
-  color:var(--text-muted);font-size:14px;
-}
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:40px 32px 32px;margin-top:20px;}
+.footer-inner{max-width:1200px;margin:0 auto;}
+.footer-warning{background:rgba(251,146,60,.06);border:1px solid rgba(251,146,60,.2);border-radius:8px;padding:16px 20px;margin-bottom:28px;font-size:13px;color:#FB923C;line-height:1.6;}
+.footer-warning strong{font-weight:800;}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.footer-copy{font-size:12px;color:var(--text-muted);}
+.footer-copy span{color:var(--accent);}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap;}
+.footer-links a{font-size:12px;color:var(--text-muted);text-decoration:none;transition:color .15s;}
+.footer-links a:hover{color:var(--accent);}
 
-footer{
-  border-top:1px solid var(--border);
-  padding:24px 32px;
-  text-align:center;
-  font-size:12px;color:var(--text-muted);
-  letter-spacing:.5px;
-}
-footer span{color:var(--accent)}
-
-.loading{
-  display:none;text-align:center;padding:60px;
-  color:var(--text-muted);font-size:14px;
-}
+/* LOADING */
+.loading{display:none;text-align:center;padding:60px;color:var(--text-muted);font-size:14px;}
 .loading.active{display:block}
-.spinner{
-  display:inline-block;width:32px;height:32px;
-  border:3px solid var(--border);border-top-color:var(--accent);
-  border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px;
-}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.toast{
-  position:fixed;bottom:24px;right:24px;z-index:999;
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;padding:14px 20px;
-  font-size:13px;font-weight:600;
-  transform:translateX(120%);transition:transform .3s ease;
-  max-width:320px;
-}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 20px;font-size:13px;font-weight:600;transform:translateX(120%);transition:transform .3s ease;max-width:320px;}
 .toast.show{transform:translateX(0)}
 .toast.success{border-color:rgba(140,255,46,.4);color:var(--accent)}
 .toast.error{border-color:rgba(255,68,68,.4);color:var(--loss)}
 
+/* COOKIES */
+.cookies-banner{position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--surface2);border-top:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;transform:translateY(100%);transition:transform .4s ease;}
+.cookies-banner.show{transform:translateY(0)}
+.cookies-text{font-size:13px;color:var(--text-muted);max-width:700px;}
+.cookies-text a{color:var(--accent);text-decoration:none;}
+.cookies-btns{display:flex;gap:10px;}
+.btn-accept{padding:8px 20px;background:var(--accent);color:#000;font-weight:800;font-size:12px;border:none;border-radius:6px;cursor:pointer;font-family:'Manrope',sans-serif;}
+.btn-decline{padding:8px 16px;background:transparent;border:1px solid var(--border);color:var(--text-muted);font-size:12px;font-weight:700;border-radius:6px;cursor:pointer;font-family:'Manrope',sans-serif;}
+.btn-decline:hover{border-color:var(--text-muted);}
+
 @media(max-width:900px){
   .stat-grid{grid-template-columns:repeat(2,1fr)}
   .mini-stats{grid-template-columns:repeat(2,1fr)}
+  .chart-layout{grid-template-columns:1fr}
+  .side-stats{display:grid;grid-template-columns:1fr 1fr}
+  .recent-tickets{display:none}
   .navbar{padding:0 16px}
   .hero{padding:48px 16px 40px}
-  .section{padding:0 16px 60px}
+  .section,.chart-section{padding-left:16px;padding-right:16px}
 }
 @media(max-width:600px){
   .stat-grid{grid-template-columns:1fr 1fr}
   .stat-value{font-size:20px}
-  .hero-title{font-size:40px}
-  .filters{gap:8px}
-  .mini-stats{grid-template-columns:1fr 1fr}
+  .hero-title{font-size:36px}
   .overlay{padding:0}
   .modal{border-radius:0;min-height:100dvh}
+  .footer-bottom{flex-direction:column;align-items:flex-start}
+  .cookies-banner{padding:16px}
 }
 </style>
 </head>
 <body>
 
+<!-- NAVBAR -->
 <nav class="navbar">
-  <a class="logo" href="#">STAKE <span>KINGS</span></a>
-  <div class="nav-right"></div>
+  <a class="logo" href="https://www.stakekings.cz/">STAKE <span>KINGS</span></a>
+  <div class="nav-right">
+    <a class="nav-cta" href="https://t.me/+kkhCNfaLHtswY2Q0" target="_blank">Vstoupit ZDARMA ↗</a>
+  </div>
 </nav>
 
+<!-- HERO -->
 <section class="hero">
-  <h1 class="hero-title">Verifikované <span class="green">Výsledky</span></h1>
-  <p class="hero-sub">Všechny výsledky jsou verifikované</p>
+  <div class="hero-label">📊 Živé statistiky</div>
+  <h1 class="hero-title">Statistiky a <span>Výsledky</span></h1>
+  <p class="hero-sub">Všechny výsledky jsou verifikované. Data se aktualizují v reálném čase.</p>
   <div class="stat-grid" id="globalStats">
     <div class="stat-card" style="--card-color:var(--blue)">
       <div class="stat-label">Počet tipů</div>
@@ -381,6 +240,49 @@ footer span{color:var(--accent)}
   </div>
 </section>
 
+<!-- EQUITY CHART -->
+<section class="chart-section">
+  <div class="chart-wrap">
+    <div class="chart-layout">
+      <div>
+        <div class="chart-header">
+          <div class="chart-left">
+            <div class="chart-label">Celkový zisk</div>
+            <div class="chart-profit" id="chart-profit-display">—</div>
+            <div class="chart-profit-sub" id="chart-period-label">Načítám data…</div>
+          </div>
+          <div class="period-btns">
+            <button class="period-btn" onclick="setPeriod(7)">7D</button>
+            <button class="period-btn active" onclick="setPeriod(30)">30D</button>
+            <button class="period-btn" onclick="setPeriod(90)">90D</button>
+            <button class="period-btn" onclick="setPeriod(0)">VŠE</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="equityChart"></canvas>
+        </div>
+      </div>
+      <div class="side-stats">
+        <div class="side-stat-card">
+          <div class="side-stat-label">ROI</div>
+          <div class="side-stat-value" id="side-roi" style="color:var(--accent)">—</div>
+          <div class="side-stat-sub" id="side-roi-sub">celkové</div>
+        </div>
+        <div class="side-stat-card">
+          <div class="side-stat-label">Úspěšnost</div>
+          <div class="side-stat-value" id="side-winrate" style="color:var(--purple)">—</div>
+          <div class="side-stat-sub" id="side-winrate-sub">win / loss</div>
+        </div>
+        <div class="recent-tickets">
+          <div class="recent-title">Poslední tikety</div>
+          <div id="recentList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PŘEHLED -->
 <section class="section">
   <div class="section-header">
     <h2 class="section-title">🏆 Přehled</h2>
@@ -390,7 +292,7 @@ footer span{color:var(--accent)}
     <div class="spinner"></div><br>Načítám živá data…
   </div>
   <div class="table-wrap" id="overviewTableWrap">
-    <table id="overviewTable">
+    <table>
       <thead>
         <tr>
           <th>Název</th>
@@ -406,6 +308,7 @@ footer span{color:var(--accent)}
   </div>
 </section>
 
+<!-- MODAL -->
 <div class="overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal">
     <div class="modal-header">
@@ -443,18 +346,13 @@ footer span{color:var(--accent)}
         </div>
         <button class="btn-reset" onclick="resetFilters()">↺ Reset</button>
       </div>
+      <!-- Mini stats for filtered data -->
+      <div class="mini-stats" id="modalFilteredStats" style="margin-bottom:16px;"></div>
       <div class="modal-table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Datum</th>
-              <th>Utkání</th>
-              <th>Tip</th>
-              <th>Kurz</th>
-              <th>Vklad</th>
-              <th>Uzavřeno</th>
-              <th>Výsledek</th>
-              <th>Badge</th>
+              <th>Datum</th><th>Utkání</th><th>Tip</th><th>Kurz</th><th>Vklad</th><th>Uzavřeno</th><th>Výsledek</th><th>Badge</th>
             </tr>
           </thead>
           <tbody id="modalBody"></tbody>
@@ -465,57 +363,91 @@ footer span{color:var(--accent)}
   </div>
 </div>
 
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<footer>© 2026 <span>Stake Kings</span></footer>
+<!-- COOKIES -->
+<div class="cookies-banner" id="cookiesBanner">
+  <div class="cookies-text">
+    Tento web používá cookies pro zajištění správné funkčnosti. Více informací v <a href="https://www.stakekings.cz/contact#contact" target="_blank">obchodních podmínkách</a>.
+  </div>
+  <div class="cookies-btns">
+    <button class="btn-decline" onclick="declineCookies()">Odmítnout</button>
+    <button class="btn-accept" onclick="acceptCookies()">Přijmout</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-warning">
+      <strong>⚠️ Upozornění:</strong> Minulé výsledky nezaručují budoucí výnosy. Sázení s sebou nese finanční riziko. Hrajte zodpovědně. Stake Kings poskytuje analytické informace, nikoliv finanční poradenství. Obsah je určen pouze pro osoby starší 18 let.
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 <span>Stake Kings</span> · Všechna práva vyhrazena</div>
+      <div class="footer-links">
+        <a href="https://www.stakekings.cz/contact#contact" target="_blank">Obchodní podmínky</a>
+        <a href="https://www.stakekings.cz/contact#contact" target="_blank">GDPR & Ochrana dat</a>
+        <a href="https://www.stakekings.cz/contact#contact" target="_blank">Cookies</a>
+        <a href="https://www.stakekings.cz/contact#contact" target="_blank">Kontakt</a>
+      </div>
+    </div>
+  </div>
+</footer>
 
 <script>
+// ══════════════════════════════════════════════════════
+//  MOCK DATA
+// ══════════════════════════════════════════════════════
 const mockData = {
   "Start členství": [
-    {id:"s01",Datum:"03.01.2025",Utkání:"Sparta Praha – HC Třinec / HC Liberec – HC Vítkovice",Tip:"Výsledek: Sparta Praha / Výsledek: HC Liberec",Kurz:4.20,Vklad:5000,Uzavřeno:4.20,Výsledek:16000},
-    {id:"s02",Datum:"07.01.2025",Utkání:"Slavia Praha – Baník Ostrava",Tip:"Výsledek zápasu: Slavia Praha",Kurz:2.10,Vklad:8000,Uzavřeno:2.10,Výsledek:8800},
+    {id:"s01",Datum:"03.01.2025",Utkání:"Sparta Praha – HC Třinec / HC Liberec – HC Vítkovice",Tip:"Výsledek: Sparta Praha / Výsledek: HC Liberec",Kurz:4.20,Vklad:5000,Uzavřeno:4.20,Výsledek:21000},
+    {id:"s02",Datum:"07.01.2025",Utkání:"Slavia Praha – Baník Ostrava",Tip:"Výsledek zápasu: Slavia Praha",Kurz:2.10,Vklad:8000,Uzavřeno:2.10,Výsledek:16800},
     {id:"s03",Datum:"11.01.2025",Utkání:"Kometa Brno – Motor České Budějovice",Tip:"Výsledek zápasu: Kometa Brno",Kurz:1.70,Vklad:5000,Uzavřeno:1.70,Výsledek:0},
     {id:"s04",Datum:"15.01.2025",Utkání:"Manchester City – Arsenal",Tip:"Výsledek zápasu: Manchester City",Kurz:1.95,Vklad:10000,Uzavřeno:1.95,Výsledek:-10000},
-    {id:"s05",Datum:"19.01.2025",Utkání:"Sigma Olomouc – Bohemians Praha",Tip:"Výsledek zápasu: Sigma Olomouc",Kurz:2.40,Vklad:6000,Uzavřeno:1.65,Výsledek:3900},
-    {id:"s06",Datum:"23.01.2025",Utkání:"Pittsburgh Penguins – Philadelphia Flyers",Tip:"Výsledek zápasu: Pittsburgh Penguins",Kurz:1.85,Vklad:7000,Uzavřeno:1.85,Výsledek:5950},
+    {id:"s05",Datum:"19.01.2025",Utkání:"Sigma Olomouc – Bohemians Praha",Tip:"Výsledek zápasu: Sigma Olomouc",Kurz:2.40,Vklad:6000,Uzavřeno:1.65,Výsledek:9900},
+    {id:"s06",Datum:"23.01.2025",Utkání:"Pittsburgh Penguins – Philadelphia Flyers",Tip:"Výsledek zápasu: Pittsburgh Penguins",Kurz:1.85,Vklad:7000,Uzavřeno:1.85,Výsledek:12950},
     {id:"s07",Datum:"27.01.2025",Utkání:"Viktoria Plzeň – Slovácko",Tip:"Výsledek zápasu: Viktoria Plzeň",Kurz:1.60,Vklad:9000,Uzavřeno:1.60,Výsledek:-9000},
   ],
   "VIP členství": [
-    {id:"v01",Datum:"05.01.2025",Utkání:"Real Madrid – FC Barcelona",Tip:"Výsledek zápasu: Real Madrid",Kurz:2.80,Vklad:15000,Uzavřeno:2.80,Výsledek:27000},
-    {id:"v02",Datum:"10.01.2025",Utkání:"HC Mountfield HK – HC Kometa Brno / Bílí Tygři Liberec – HC Olomouc",Tip:"Výsledek: Mountfield HK / Výsledek: Bílí Tygři",Kurz:5.10,Vklad:8000,Uzavřeno:5.10,Výsledek:32800},
-    {id:"v03",Datum:"14.01.2025",Utkání:"Juventus – Inter Milán",Tip:"Výsledek zápasu: Juventus",Kurz:2.60,Vklad:12000,Uzavřeno:1.80,Výsledek:9600},
+    {id:"v01",Datum:"05.01.2025",Utkání:"Real Madrid – FC Barcelona",Tip:"Výsledek zápasu: Real Madrid",Kurz:2.80,Vklad:15000,Uzavřeno:2.80,Výsledek:42000},
+    {id:"v02",Datum:"10.01.2025",Utkání:"HC Mountfield HK – HC Kometa Brno / Bílí Tygři Liberec – HC Olomouc",Tip:"Výsledek: Mountfield HK / Výsledek: Bílí Tygři",Kurz:5.10,Vklad:8000,Uzavřeno:5.10,Výsledek:40800},
+    {id:"v03",Datum:"14.01.2025",Utkání:"Juventus – Inter Milán",Tip:"Výsledek zápasu: Juventus",Kurz:2.60,Vklad:12000,Uzavřeno:1.80,Výsledek:21600},
     {id:"v04",Datum:"18.01.2025",Utkání:"Tampa Bay Lightning – Florida Panthers",Tip:"Výsledek zápasu: Florida Panthers",Kurz:2.10,Vklad:10000,Uzavřeno:2.10,Výsledek:-10000},
-    {id:"v05",Datum:"22.01.2025",Utkání:"PSG – Olympique Lyon",Tip:"Výsledek zápasu: PSG",Kurz:1.55,Vklad:15000,Uzavřeno:1.55,Výsledek:8250},
+    {id:"v05",Datum:"22.01.2025",Utkání:"PSG – Olympique Lyon",Tip:"Výsledek zápasu: PSG",Kurz:1.55,Vklad:15000,Uzavřeno:1.55,Výsledek:23250},
   ],
   "Prémium": [
-    {id:"p01",Datum:"06.01.2025",Utkání:"Borussia Dortmund – RB Leipzig",Tip:"Výsledek zápasu: Borussia Dortmund",Kurz:2.00,Vklad:10000,Uzavřeno:2.00,Výsledek:10000},
-    {id:"p02",Datum:"13.01.2025",Utkání:"Slavia Praha – Plzeň / Sparta Praha – Baník Ostrava",Tip:"Výsledek: Slavia Praha / Výsledek: Sparta Praha",Kurz:4.50,Vklad:5000,Uzavřeno:4.50,Výsledek:17500},
+    {id:"p01",Datum:"06.01.2025",Utkání:"Borussia Dortmund – RB Leipzig",Tip:"Výsledek zápasu: Borussia Dortmund",Kurz:2.00,Vklad:10000,Uzavřeno:2.00,Výsledek:20000},
+    {id:"p02",Datum:"13.01.2025",Utkání:"Slavia Praha – Plzeň / Sparta Praha – Baník Ostrava",Tip:"Výsledek: Slavia Praha / Výsledek: Sparta Praha",Kurz:4.50,Vklad:5000,Uzavřeno:4.50,Výsledek:22500},
     {id:"p03",Datum:"20.01.2025",Utkání:"HC Třinec – HC Sparta Praha",Tip:"Výsledek zápasu: HC Třinec",Kurz:2.30,Vklad:8000,Uzavřeno:2.30,Výsledek:-8000},
-    {id:"p04",Datum:"25.01.2025",Utkání:"Inter Milán – AC Milán",Tip:"Výsledek zápasu: Inter Milán",Kurz:2.15,Vklad:9000,Uzavřeno:1.55,Výsledek:4950},
+    {id:"p04",Datum:"25.01.2025",Utkání:"Inter Milán – AC Milán",Tip:"Výsledek zápasu: Inter Milán",Kurz:2.15,Vklad:9000,Uzavřeno:1.55,Výsledek:13950},
   ],
   "Speciál": [
-    {id:"sp01",Datum:"08.01.2025",Utkání:"HC Oceláři Třinec – Škoda Plzeň / HC Dynamo Pardubice – Bílí Tygři Liberec",Tip:"Výsledek: HC Třinec / Výsledek: HC Dynamo Pardubice",Kurz:5.60,Vklad:4000,Uzavřeno:5.60,Výsledek:18400},
+    {id:"sp01",Datum:"08.01.2025",Utkání:"HC Oceláři Třinec – Škoda Plzeň / HC Dynamo Pardubice – Bílí Tygři Liberec",Tip:"Výsledek: HC Třinec / Výsledek: HC Dynamo Pardubice",Kurz:5.60,Vklad:4000,Uzavřeno:5.60,Výsledek:22400},
     {id:"sp02",Datum:"15.01.2025",Utkání:"AC Milán – Napoli",Tip:"Výsledek zápasu: AC Milán",Kurz:2.70,Vklad:7000,Uzavřeno:2.70,Výsledek:-7000},
-    {id:"sp03",Datum:"21.01.2025",Utkání:"Andrey Rublev – Daniil Medvedev",Tip:"Výsledek zápasu: Daniil Medvedev",Kurz:1.80,Vklad:9000,Uzavřeno:1.35,Výsledek:3150},
-    {id:"sp04",Datum:"28.01.2025",Utkání:"Edmonton Oilers – Calgary Flames",Tip:"Výsledek zápasu: Edmonton Oilers",Kurz:1.65,Vklad:11000,Uzavřeno:1.65,Výsledek:7150},
+    {id:"sp03",Datum:"21.01.2025",Utkání:"Andrey Rublev – Daniil Medvedev",Tip:"Výsledek zápasu: Daniil Medvedev",Kurz:1.80,Vklad:9000,Uzavřeno:1.35,Výsledek:12150},
+    {id:"sp04",Datum:"28.01.2025",Utkání:"Edmonton Oilers – Calgary Flames",Tip:"Výsledek zápasu: Edmonton Oilers",Kurz:1.65,Vklad:11000,Uzavřeno:1.65,Výsledek:18150},
   ]
 };
 
+// ══════════════════════════════════════════════════════
+//  SUPABASE
+// ══════════════════════════════════════════════════════
 const SUPABASE_URL = 'https://txxrvzwbpiynvpjvjzcw.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4eHJ2endicGl5bnZwanZqemN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2Mzg5ODUsImV4cCI6MjA4MTIxNDk4NX0.MVx5X1GYckYpkPH2APBuVM_DKHImjAqNZZeZ3L331p8';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const TABLE_NAMES = ["Start členství","VIP členství","Prémium","Speciál"];
-const GROUP_LABELS = {
-  "Start členství":"ČLENSTVÍ",
-  "VIP členství":"ČLENSTVÍ",
-  "Prémium":"JEDNORÁZOVÉ TIKETY",
-  "Speciál":"JEDNORÁZOVÉ TIKETY"
-};
+const GROUP_LABELS = {"Start členství":"ČLENSTVÍ","VIP členství":"ČLENSTVÍ","Prémium":"JEDNORÁZOVÉ TIKETY","Speciál":"JEDNORÁZOVÉ TIKETY"};
 
 let currentData = JSON.parse(JSON.stringify(mockData));
 let currentTable = null;
+let equityChart = null;
+let currentPeriod = 30;
 
+// ══════════════════════════════════════════════════════
+//  FORMATTING
+// ══════════════════════════════════════════════════════
 const fmt = (n) => new Intl.NumberFormat('cs-CZ').format(n) + ' Kč';
 const fmtNum = (n) => new Intl.NumberFormat('cs-CZ').format(n);
 const fmtKurz = (k) => parseFloat(k).toFixed(2);
@@ -531,23 +463,30 @@ function fmtProfit(val) {
   return `<span class="text-muted">0 Kč</span>`;
 }
 
-// Čistý zisk = u výhry odečteme vklad (DB vrací hrubý výnos), u prohry/void zůstává
 function getNetProfit(row) {
   if (row.Výsledek > 0) return row.Výsledek - row.Vklad;
   return row.Výsledek;
 }
 
+function parseDate(str) {
+  if (!str) return null;
+  const p = str.split('.');
+  if (p.length < 3) return null;
+  return new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`);
+}
+
+// ══════════════════════════════════════════════════════
+//  STATS
+// ══════════════════════════════════════════════════════
 function computeStats(rows) {
-  const closed = rows.filter(r => parseFloat(r.Uzavřeno) !== parseFloat(r.Kurz));
   const active = rows.filter(r => parseFloat(r.Uzavřeno) === parseFloat(r.Kurz));
   const wins = active.filter(r => r.Výsledek > 0);
   const losses = active.filter(r => r.Výsledek < 0);
   const totalStake = rows.reduce((s,r) => s + r.Vklad, 0);
   const totalProfit = rows.reduce((s,r) => s + getNetProfit(r), 0);
   const roi = totalStake > 0 ? (totalProfit / totalStake * 100) : 0;
-  const winrate = (wins.length + losses.length) > 0
-    ? (wins.length / (wins.length + losses.length) * 100) : 0;
-  return { count: rows.length, totalProfit, totalStake, roi, winrate };
+  const winrate = (wins.length + losses.length) > 0 ? (wins.length / (wins.length + losses.length) * 100) : 0;
+  return { count: rows.length, totalProfit, totalStake, roi, winrate, wins: wins.length, losses: losses.length };
 }
 
 function getStatus(row) {
@@ -558,22 +497,22 @@ function getStatus(row) {
 }
 function statusBadge(status) {
   const map = {WIN:'badge-win',LOSS:'badge-loss',VOID:'badge-void',CLOSED:'badge-closed'};
-  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+  return `<span class="badge ${map[status]||'badge-void'}">${status}</span>`;
 }
-
+function winrateBadge(pct) {
+  if (pct >= 60) return `<span class="badge badge-green">${pct.toFixed(1)}%</span>`;
+  if (pct >= 40) return `<span class="badge" style="background:rgba(251,191,36,.15);color:#FBBF24;border:1px solid rgba(251,191,36,.3)">${pct.toFixed(1)}%</span>`;
+  return `<span class="badge badge-red">${pct.toFixed(1)}%</span>`;
+}
 function renderUtkání(u) {
   if (!u || !u.includes(' / ')) return `<span>${u||''}</span>`;
   const parts = u.split(' / ');
-  const tooltip = parts.join('<br>');
-  return `<span class="parlay-link">🔗 ${parts.length} zápasů<span class="tooltip">${tooltip}</span></span>`;
+  return `<span class="parlay-link">🔗 ${parts.length} zápasů<span class="tooltip">${parts.join('<br>')}</span></span>`;
 }
 
-function winrateBadge(pct) {
-  if (pct >= 60) return `<span class="badge badge-green">${pct.toFixed(1)}%</span>`;
-  if (pct >= 40) return `<span class="badge badge-yellow">${pct.toFixed(1)}%</span>`;
-  return `<span class="badge badge-red">${pct.toFixed(1)}%</span>`;
-}
-
+// ══════════════════════════════════════════════════════
+//  GLOBAL STATS
+// ══════════════════════════════════════════════════════
 function renderGlobalStats() {
   const all = Object.values(currentData).flat();
   const s = computeStats(all);
@@ -585,6 +524,149 @@ function renderGlobalStats() {
   document.getElementById('gs-roi').style.color = s.roi >= 0 ? 'var(--accent)' : 'var(--loss)';
 }
 
+// ══════════════════════════════════════════════════════
+//  EQUITY CHART
+// ══════════════════════════════════════════════════════
+function setPeriod(days) {
+  currentPeriod = days;
+  document.querySelectorAll('.period-btn').forEach((b,i) => {
+    const periods = [7,30,90,0];
+    b.classList.toggle('active', periods[i] === days);
+  });
+  renderChart();
+}
+
+function renderChart() {
+  const all = Object.values(currentData).flat();
+  const now = new Date();
+  let filtered = all.filter(r => r.Datum);
+  
+  if (currentPeriod > 0) {
+    const cutoff = new Date(now - currentPeriod * 86400000);
+    filtered = filtered.filter(r => {
+      const d = parseDate(r.Datum);
+      return d && d >= cutoff;
+    });
+  }
+
+  // Sort by date
+  filtered.sort((a,b) => {
+    const da = parseDate(a.Datum), db = parseDate(b.Datum);
+    return da - db;
+  });
+
+  // Build cumulative profit — začínáme od 0
+  let cumProfit = 0;
+  const labels = ['Start'];
+  const data = [0];
+  const dateMap = {};
+
+  filtered.forEach(r => {
+    const d = parseDate(r.Datum);
+    if (!d) return;
+    const key = r.Datum;
+    if (!dateMap[key]) dateMap[key] = 0;
+    dateMap[key] += getNetProfit(r);
+  });
+
+  const sortedDates = Object.keys(dateMap).sort((a,b) => parseDate(a) - parseDate(b));
+  sortedDates.forEach(date => {
+    cumProfit += dateMap[date];
+    labels.push(date);
+    data.push(cumProfit);
+  });
+
+  // Stats
+  const s = computeStats(filtered);
+  const profitEl = document.getElementById('chart-profit-display');
+  profitEl.textContent = (s.totalProfit >= 0 ? '+' : '') + fmt(s.totalProfit);
+  profitEl.style.color = s.totalProfit >= 0 ? 'var(--accent)' : 'var(--loss)';
+
+  const periodLabel = currentPeriod === 0 ? 'Celkem' : `Za posledních ${currentPeriod} dní`;
+  document.getElementById('chart-period-label').innerHTML = `<span>${periodLabel}</span> · ${fmtNum(s.count)} tiketů`;
+
+  document.getElementById('side-roi').textContent = (s.roi >= 0 ? '+' : '') + s.roi.toFixed(2) + '%';
+  document.getElementById('side-roi').style.color = s.roi >= 0 ? 'var(--accent)' : 'var(--loss)';
+  document.getElementById('side-winrate').textContent = s.winrate.toFixed(1) + '%';
+  document.getElementById('side-winrate-sub').textContent = `${s.wins} výher / ${s.losses} proher`;
+
+  // Recent tickets
+  const recent = [...filtered].sort((a,b) => parseDate(b.Datum) - parseDate(a.Datum)).slice(0,5);
+  document.getElementById('recentList').innerHTML = recent.map(r => {
+    const st = getStatus(r);
+    const cls = st === 'WIN' || st === 'CLOSED' ? 'rb-win' : st === 'LOSS' ? 'rb-loss' : '';
+    return `<div class="recent-item">
+      <span class="recent-date">${r.Datum}</span>
+      <span class="recent-kurz">${fmtKurz(r.Kurz)}</span>
+      <span class="recent-badge ${cls}">${st}</span>
+    </div>`;
+  }).join('');
+
+  // Chart
+  const ctx = document.getElementById('equityChart').getContext('2d');
+  const isPositive = s.totalProfit >= 0;
+  const lineColor = isPositive ? '#8CFF2E' : '#FF4444';
+
+  if (equityChart) equityChart.destroy();
+
+  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+  gradient.addColorStop(0, isPositive ? 'rgba(140,255,46,0.3)' : 'rgba(255,68,68,0.3)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+
+  equityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: lineColor,
+        borderWidth: 2.5,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.4,
+        pointRadius: labels.length > 30 ? 0 : 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: lineColor,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          borderColor: '#2f2f2f',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+          bodyFont: { family: 'Manrope', weight: '700', size: 13 },
+          callbacks: {
+            label: ctx => (ctx.raw >= 0 ? '+' : '') + new Intl.NumberFormat('cs-CZ').format(Math.round(ctx.raw)) + ' Kč'
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(47,47,47,0.5)', drawBorder: false },
+          ticks: { color: '#888', font: { family: 'Manrope', size: 11 }, maxTicksLimit: 8, maxRotation: 0 },
+          border: { display: false }
+        },
+        y: {
+          min: Math.min(0, ...(data.length ? data : [0])),
+          grid: { color: 'rgba(47,47,47,0.5)', drawBorder: false },
+          ticks: { color: '#888', font: { family: 'Manrope', size: 11 }, callback: v => new Intl.NumberFormat('cs-CZ',{notation:'compact'}).format(v) + ' Kč' },
+          border: { display: false }
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  OVERVIEW TABLE
+// ══════════════════════════════════════════════════════
 function renderOverview() {
   const tbody = document.getElementById('overviewBody');
   tbody.innerHTML = '';
@@ -603,7 +685,7 @@ function renderOverview() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-weight:700">${name}</td>
-      <td style="font-feature-settings:'tnum'">${fmtNum(s.count)}</td>
+      <td>${fmtNum(s.count)}</td>
       <td>${winrateBadge(s.winrate)}</td>
       <td>${fmtProfit(s.totalProfit)}</td>
       <td style="font-weight:700;color:${s.roi>=0?'var(--accent)':'var(--loss)'}">${(s.roi>=0?'+':'')+s.roi.toFixed(2)}%</td>
@@ -613,6 +695,9 @@ function renderOverview() {
   });
 }
 
+// ══════════════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════════════
 function openModal(tableName) {
   currentTable = tableName;
   document.getElementById('modalTitle').textContent = tableName;
@@ -632,52 +717,36 @@ function handleOverlayClick(e) {
 function renderModal() {
   const rows = currentData[currentTable] || [];
   const s = computeStats(rows);
-  const ms = document.getElementById('modalMiniStats');
-  ms.innerHTML = `
-    <div class="mini-stat">
-      <div class="mini-stat-label">Tiketů</div>
-      <div class="mini-stat-value" style="color:var(--blue)">${fmtNum(s.count)}</div>
-    </div>
-    <div class="mini-stat">
-      <div class="mini-stat-label">Celkový zisk</div>
-      <div class="mini-stat-value" style="color:${s.totalProfit>=0?'var(--accent)':'var(--loss)'}">${(s.totalProfit>=0?'+':'')+fmt(s.totalProfit)}</div>
-    </div>
-    <div class="mini-stat">
-      <div class="mini-stat-label">ROI</div>
-      <div class="mini-stat-value" style="color:${s.roi>=0?'var(--accent)':'var(--loss)'}">${(s.roi>=0?'+':'')+s.roi.toFixed(2)}%</div>
-    </div>
-    <div class="mini-stat">
-      <div class="mini-stat-label">Úspěšnost</div>
-      <div class="mini-stat-value" style="color:var(--purple)">${s.winrate.toFixed(1)}%</div>
-    </div>
+  document.getElementById('modalMiniStats').innerHTML = `
+    <div class="mini-stat"><div class="mini-stat-label">Tiketů</div><div class="mini-stat-value" style="color:var(--blue)">${fmtNum(s.count)}</div></div>
+    <div class="mini-stat"><div class="mini-stat-label">Celkový zisk</div><div class="mini-stat-value" style="color:${s.totalProfit>=0?'var(--accent)':'var(--loss)'}">${(s.totalProfit>=0?'+':'')+fmt(s.totalProfit)}</div></div>
+    <div class="mini-stat"><div class="mini-stat-label">ROI</div><div class="mini-stat-value" style="color:${s.roi>=0?'var(--accent)':'var(--loss)'}">${(s.roi>=0?'+':'')+s.roi.toFixed(2)}%</div></div>
+    <div class="mini-stat"><div class="mini-stat-label">Úspěšnost</div><div class="mini-stat-value" style="color:var(--purple)">${s.winrate.toFixed(1)}%</div></div>
   `;
 
-  // Naplň měsíční dropdown z dat
+  // Populate month dropdown
   const monthSel = document.getElementById('filterMonth');
-  const currentMonth = monthSel.value;
   const months = new Set();
   rows.forEach(r => {
     if (!r.Datum) return;
-    const parts = r.Datum.split('.');
-    if (parts.length >= 3) {
-      months.add(`${parseInt(parts[1])}.${parts[2]}`); // M.YYYY
+    const p = r.Datum.split('.');
+    if (p.length >= 3) {
+      const m = parseInt(p[1]);
+      const y = p[2].trim();
+      months.add(`${m}.${y}`);
     }
   });
   const sorted = Array.from(months).sort((a,b) => {
     const [ma,ya] = a.split('.').map(Number);
     const [mb,yb] = b.split('.').map(Number);
-    return (ya*12+ma) - (yb*12+mb);
-  }).reverse(); // nejnovější první
-
+    return (yb*12+mb) - (ya*12+ma);
+  });
   monthSel.innerHTML = '<option value="all">Všechny měsíce</option>';
   sorted.forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m;
-    opt.textContent = m;
-    monthSel.appendChild(opt);
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    monthSel.appendChild(o);
   });
-  if (sorted.includes(currentMonth)) monthSel.value = currentMonth;
-
   applyFilters();
 }
 
@@ -691,9 +760,9 @@ function applyFilters() {
     const status = getStatus(r).toLowerCase();
     if (fResult !== 'all' && status !== fResult) return false;
     if (fMonth !== 'all' && r.Datum) {
-      const parts = r.Datum.split('.');
-      if (parts.length >= 3) {
-        const rowMonth = `${parseInt(parts[1])}.${parts[2]}`;
+      const p = r.Datum.split('.');
+      if (p.length >= 3) {
+        const rowMonth = `${parseInt(p[1])}.${p[2].trim()}`;
         if (rowMonth !== fMonth) return false;
       }
     }
@@ -701,18 +770,38 @@ function applyFilters() {
   });
 
   filtered.sort((a,b) => {
-    if (fSort === 'date-desc') return dateCmp(b.Datum, a.Datum);
-    if (fSort === 'date-asc') return dateCmp(a.Datum, b.Datum);
-    if (fSort === 'result-desc') return b.Výsledek - a.Výsledek;
-    if (fSort === 'result-asc') return a.Výsledek - b.Výsledek;
+    if (fSort === 'date-desc') return parseDate(b.Datum) - parseDate(a.Datum);
+    if (fSort === 'date-asc') return parseDate(a.Datum) - parseDate(b.Datum);
+    if (fSort === 'result-desc') return getNetProfit(b) - getNetProfit(a);
+    if (fSort === 'result-asc') return getNetProfit(a) - getNetProfit(b);
     if (fSort === 'kurz-desc') return b.Kurz - a.Kurz;
     return 0;
   });
 
+  // Filtered stats
+  const fs = computeStats(filtered);
+  document.getElementById('modalFilteredStats').innerHTML = fMonth !== 'all' ? `
+    <div class="mini-stat" style="background:rgba(140,255,46,.04);border-color:rgba(140,255,46,.2)">
+      <div class="mini-stat-label">Tiketů (${fMonth})</div>
+      <div class="mini-stat-value" style="color:var(--blue)">${fmtNum(fs.count)}</div>
+    </div>
+    <div class="mini-stat" style="background:rgba(140,255,46,.04);border-color:rgba(140,255,46,.2)">
+      <div class="mini-stat-label">Zisk (${fMonth})</div>
+      <div class="mini-stat-value" style="color:${fs.totalProfit>=0?'var(--accent)':'var(--loss)'}">${(fs.totalProfit>=0?'+':'')+fmt(fs.totalProfit)}</div>
+    </div>
+    <div class="mini-stat" style="background:rgba(140,255,46,.04);border-color:rgba(140,255,46,.2)">
+      <div class="mini-stat-label">ROI (${fMonth})</div>
+      <div class="mini-stat-value" style="color:${fs.roi>=0?'var(--accent)':'var(--loss)'}">${(fs.roi>=0?'+':'')+fs.roi.toFixed(2)}%</div>
+    </div>
+    <div class="mini-stat" style="background:rgba(140,255,46,.04);border-color:rgba(140,255,46,.2)">
+      <div class="mini-stat-label">Úspěšnost (${fMonth})</div>
+      <div class="mini-stat-value" style="color:var(--purple)">${fs.winrate.toFixed(1)}%</div>
+    </div>
+  ` : '';
+
   const tbody = document.getElementById('modalBody');
   const noRes = document.getElementById('noResults');
   tbody.innerHTML = '';
-
   if (filtered.length === 0) { noRes.style.display = 'block'; return; }
   noRes.style.display = 'none';
 
@@ -720,16 +809,16 @@ function applyFilters() {
     const status = getStatus(row);
     const isClosed = status === 'CLOSED';
     const kurzHtml = isClosed
-      ? `<span class="kurz-original">${fmtKurz(row.Kurz)}</span><span class="kurz-arrow">→</span><span class="kurz-new">${fmtKurz(row.Uzavřeno)}</span>`
-      : `<span class="kurz-normal">${fmtKurz(row.Kurz)}</span>`;
+      ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:12px">${fmtKurz(row.Kurz)}</span><span style="color:var(--orange);font-size:11px;margin:0 4px">→</span><span style="color:var(--orange);font-weight:700">${fmtKurz(row.Uzavřeno)}</span>`
+      : `<span>${fmtKurz(row.Kurz)}</span>`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="white-space:nowrap;color:var(--text-muted);font-size:13px">${row.Datum}</td>
       <td>${renderUtkání(row.Utkání)}</td>
       <td style="font-size:12px;color:var(--text-muted);max-width:200px">${row.Tip||''}</td>
       <td style="white-space:nowrap">${kurzHtml}</td>
-      <td style="font-feature-settings:'tnum';white-space:nowrap">${fmt(row.Vklad)}</td>
-      <td style="white-space:nowrap;color:${isClosed?'var(--orange)':'var(--text-muted)'}">${isClosed ? fmtKurz(row.Uzavřeno) : '—'}</td>
+      <td style="white-space:nowrap">${fmt(row.Vklad)}</td>
+      <td style="white-space:nowrap;color:${isClosed?'var(--orange)':'var(--text-muted)'}">${isClosed?fmtKurz(row.Uzavřeno):'—'}</td>
       <td style="white-space:nowrap">${fmtResult(getNetProfit(row))}</td>
       <td>${statusBadge(status)}</td>
     `;
@@ -741,14 +830,12 @@ function resetFilters() {
   document.getElementById('filterResult').value = 'all';
   document.getElementById('filterMonth').value = 'all';
   document.getElementById('filterSort').value = 'date-desc';
-  applyFilters();
+  document.getElementById('modalFilteredStats').innerHTML = '';
 }
 
-function dateCmp(a,b) {
-  const parse = s => { const [d,m,y] = s.split('.'); return new Date(`${y}-${m}-${d}`); };
-  return parse(a) - parse(b);
-}
-
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
 function showToast(msg, type='success') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -756,43 +843,56 @@ function showToast(msg, type='success') {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
+// ══════════════════════════════════════════════════════
+//  COOKIES
+// ══════════════════════════════════════════════════════
+function acceptCookies() {
+  localStorage.setItem('sk_cookies', '1');
+  document.getElementById('cookiesBanner').classList.remove('show');
+}
+function declineCookies() {
+  localStorage.setItem('sk_cookies', '0');
+  document.getElementById('cookiesBanner').classList.remove('show');
+}
+if (!localStorage.getItem('sk_cookies')) {
+  setTimeout(() => document.getElementById('cookiesBanner').classList.add('show'), 1500);
+}
+
+// ══════════════════════════════════════════════════════
+//  KEYBOARD
+// ══════════════════════════════════════════════════════
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ══════════════════════════════════════════════════════
-//  LIVE FETCH Z SUPABASE
+//  LIVE FETCH
 // ══════════════════════════════════════════════════════
 async function fetchLiveData() {
   document.getElementById('overviewLoading').classList.add('active');
   document.getElementById('overviewTableWrap').style.display = 'none';
-
   try {
     const results = await Promise.all(
-      TABLE_NAMES.map(name =>
-        supabaseClient.from(name).select('*').order('Datum', { ascending: false })
-      )
+      TABLE_NAMES.map(name => supabaseClient.from(name).select('*').order('Datum', { ascending: false }))
     );
-
     const liveData = {};
     results.forEach((res, i) => {
       if (res.error) throw new Error(`${TABLE_NAMES[i]}: ${res.error.message}`);
       liveData[TABLE_NAMES[i]] = res.data || [];
     });
-
     currentData = liveData;
     showToast('✅ Živá data načtena');
   } catch (err) {
     console.error(err);
-    showToast('⚠️ Chyba načítání, používám mock data', 'error');
+    showToast('⚠️ Používám ukázková data', 'error');
     currentData = JSON.parse(JSON.stringify(mockData));
   } finally {
     document.getElementById('overviewLoading').classList.remove('active');
     document.getElementById('overviewTableWrap').style.display = '';
     renderGlobalStats();
     renderOverview();
+    renderChart();
   }
 }
 
-// INIT
 fetchLiveData();
 </script>
 </body>
